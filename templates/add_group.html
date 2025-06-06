@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <h1 class="display-5 mb-0">
+            <i class="bi bi-mortarboard me-2"></i>Ajouter un Groupe
+        </h1>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Nom du Groupe</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3"> <label class="form-label">Sélectionner les Professeurs</label>
+                        <div class="card">
+                            <div class="card-body p-2">
+                                {% if teachers %}
+                                <div class="d-flex flex-wrap gap-2" id="teacherSelection">
+                                    {% for teacher in teachers %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="{{ teacher.id }}"
+                                            id="teacher{{ teacher.id }}" name="teacher_ids">
+                                        <label class="form-check-label" for="teacher{{ teacher.id }}">
+                                            {{ teacher.name }} ({{ teacher.subject }})
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <p class="text-muted mb-0 text-center"> <i
+                                        class="bi bi-exclamation-circle me-2"></i>Aucun professeur disponible
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('groups') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Retour
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i>Créer le Groupe
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const selectedTeachers = [];
+            document.querySelectorAll('input[name="teacher_ids"]:checked').forEach(checkbox => {
+                selectedTeachers.push(checkbox.value);
+            });
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'teacher_ids';
+            hiddenInput.value = selectedTeachers.join(',');
+            form.appendChild(hiddenInput);
+            form.submit();
+        });
+    });
+</script>
+{% endblock %}

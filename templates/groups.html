@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <h1 class="display-5 mb-0">
+            <i class="bi bi-people me-2"></i>Groupes
+        </h1>
+    </div>
+    <div class="col text-end">
+        <a href="{{ url_for('add_group') }}" class="btn btn-primary btn-action">
+            <i class="bi bi-plus-circle me-2"></i>Ajouter un Groupe
+        </a>
+    </div>
+</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for group in groups %}
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title d-flex justify-content-between align-items-center">
+                    {{ group.name }}
+                    <div class="dropdown">
+                        <button class="btn btn-link text-decoration-none" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('edit_group', id=group.id) }}">
+                                    <i class="bi bi-pencil me-2"></i>Modifier
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{{ url_for('delete_group', id=group.id) }}"
+                                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce groupe ?')">
+                                    <i class="bi bi-trash me-2"></i>Supprimer
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </h5>
+                <div class="card-text">
+                    <h6 class="mb-2 text-body-secondary"> <i class="bi bi-person-workspace me-2"></i>Professeurs
+                    </h6>
+                    {% if group.teachers %}
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for teacher in group.teachers %}
+                        <span class="badge bg-secondary">{{ teacher.name }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %} <p class="text-muted mb-0">Aucun professeur assigné</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <small class="text-body-secondary">
+                    <i class="bi bi-mortarboard me-1"></i>
+                    {{ group.students|length }} Élèves
+                </small>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if not groups %}
+<div class="text-center py-5">
+    <i class="bi bi-people display-1 text-secondary mb-3"></i>
+    <h2 class="text-secondary">Aucun Groupe</h2>
+    <p class="text-muted">Commencez par ajouter votre premier groupe !</p>
+    <a href="{{ url_for('add_group') }}" class="btn btn-primary btn-lg mt-3">
+        <i class="bi bi-plus-circle me-2"></i>Ajouter le Premier Groupe
+    </a>
+</div>
+{% endif %}
+{% endblock %}
