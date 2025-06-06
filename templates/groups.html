@@ -4,74 +4,198 @@
 <div class="row align-items-center mb-4">
     <div class="col">
         <h1 class="display-5 mb-0">
-            <i class="bi bi-people me-2"></i>Groupes
+            <i class="bi bi-people me-2"></i>Liste des Groupes
         </h1>
     </div>
-    <div class="col text-end">
-        <a href="{{ url_for('add_group') }}" class="btn btn-primary btn-action">
+    <div class="col-auto">
+        <a href="{{ url_for('add_group') }}" class="btn btn-primary">
             <i class="bi bi-plus-circle me-2"></i>Ajouter un Groupe
         </a>
     </div>
 </div>
 
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="alert alert-{{ category }}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
     {% for group in groups %}
     <div class="col">
         <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title d-flex justify-content-between align-items-center">
-                    {{ group.name }}
-                    <div class="dropdown">
-                        <button class="btn btn-link text-decoration-none" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-three-dots-vertical"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li>
-                                <a class="dropdown-item" href="{{ url_for('edit_group', id=group.id) }}">
-                                    <i class="bi bi-pencil me-2"></i>Modifier
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item text-danger" href="{{ url_for('delete_group', id=group.id) }}"
-                                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce groupe ?')">
-                                    <i class="bi bi-trash me-2"></i>Supprimer
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </h5>
-                <div class="card-text">
-                    <h6 class="mb-2 text-body-secondary"> <i class="bi bi-person-workspace me-2"></i>Professeurs
-                    </h6>
-                    {% if group.teachers %}
-                    <div class="d-flex flex-wrap gap-2">
-                        {% for teacher in group.teachers %}
-                        <span class="badge bg-secondary">{{ teacher.name }}</span>
-                        {% endfor %}
-                    </div>
-                    {% else %} <p class="text-muted mb-0">Aucun professeur assigné</p>
-                    {% endif %}
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{{ group.name }}</h5>
+                <div class="dropdown">
+                    <button class="btn btn-link text-decoration-none p-0" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <button type="button" class="dropdown-item" data-bs-toggle="modal"
+                                data-bs-target="#groupModal{{ group.id }}">
+                                <i class="bi bi-eye me-2"></i>Détails
+                            </button>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('edit_group', id=group.id) }}">
+                                <i class="bi bi-pencil me-2"></i>Modifier
+                            </a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal"
+                                data-bs-target="#deleteModal{{ group.id }}">
+                                <i class="bi bi-trash me-2"></i>Supprimer
+                            </button>
+                        </li>
+                    </ul>
                 </div>
             </div>
-            <div class="card-footer bg-transparent">
-                <small class="text-body-secondary">
-                    <i class="bi bi-mortarboard me-1"></i>
-                    {{ group.students|length }} Élèves
-                </small>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted d-block">Code: {{ group.code or '-' }}</small>
+                    <small class="text-muted d-block">Année: {{ group.academic_year }}</small>
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="card-subtitle mb-2">
+                        <i class="bi bi-person-workspace me-2"></i>Professeurs
+                    </h6>
+                    {% if group.teachers %}
+                    <div class="d-flex flex-wrap gap-1">
+                        {% for teacher in group.teachers %}
+                        <span class="badge bg-secondary">{{ teacher.full_name }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <small class="text-muted">Aucun professeur assigné</small>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="card-subtitle mb-2">
+                        <i class="bi bi-mortarboard me-2"></i>Étudiants
+                    </h6>
+                    <div class="d-flex align-items-center">
+                        <span class="me-2">
+                            <strong>{{ group.student_count }}</strong>
+                            {% if group.capacity %}
+                            <span class="text-muted">/ {{ group.capacity }}</span>
+                            {% endif %}
+                        </span>
+                        {% if group.capacity and group.student_count >= group.capacity %}
+                        <span class="badge bg-danger">Complet</span>
+                        {% elif group.min_students and group.student_count < group.min_students %} <span
+                            class="badge bg-warning">Incomplet</span>
+                            {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center mt-3">
+                    <span
+                        class="badge bg-{{ 'success' if group.status == 'Active' else 'warning' if group.status == 'Planned' else 'secondary' }}">
+                        {{ group.status or 'No Status' }}
+                    </span><!-- Room badge removed -->
+                </div>
             </div>
+        </div>
+
+        <!-- Group Details Modal -->
+        <div class="modal fade" id="groupModal{{ group.id }}" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">{{ group.name }} - Détails</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Information Générale</h6>
+                                <p><strong>Code:</strong> {{ group.code or '-' }}</p>
+                                <p><strong>Année Académique:</strong> {{ group.academic_year }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Capacité</h6>
+                                <p><strong>Étudiants Actuels:</strong> {{ group.student_count }}</p>
+                                <p><strong>Capacité Maximum:</strong> {{ group.capacity or '-' }}</p>
+                                <p><strong>Minimum Requis:</strong> {{ group.min_students or '-' }}</p>
+                                <p><strong>Maximum Permis:</strong> {{ group.max_students or '-' }}</p>
+                            </div>
+                        </div><!-- Schedule section removed -->
+
+                        {% if group.teachers %}
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6>Professeurs</h6>
+                                <div class="list-group list-group-flush">
+                                    {% for teacher in group.teachers %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">{{ teacher.full_name }}</h6>
+                                            <small>{{ teacher.subject }}</small>
+                                        </div>
+                                        <p class="mb-1">{{ teacher.email }}</p>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if group.description or group.notes %}
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6>Information Additionnelle</h6>
+                                {% if group.description %}
+                                <p><strong>Description:</strong> {{ group.description }}</p>
+                                {% endif %}
+                                {% if group.notes %}
+                                <p><strong>Notes:</strong> {{ group.notes }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Modal -->
+        <div class="modal fade" id="deleteModal{{ group.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Confirmer la Suppression</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Êtes-vous sûr de vouloir supprimer le groupe <strong>{{ group.name }}</strong> ?</p>
+                        <p class="text-danger mb-0">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Cette action est irréversible et supprimera toutes les associations avec les professeurs.
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <a href="{{ url_for('delete_group', id=group.id) }}" class="btn btn-danger">Supprimer</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>Aucun groupe n'a été ajouté.
+            <a href="{{ url_for('add_group') }}" class="alert-link">Ajouter un groupe</a>.
         </div>
     </div>
     {% endfor %}
 </div>
-
-{% if not groups %}
-<div class="text-center py-5">
-    <i class="bi bi-people display-1 text-secondary mb-3"></i>
-    <h2 class="text-secondary">Aucun Groupe</h2>
-    <p class="text-muted">Commencez par ajouter votre premier groupe !</p>
-    <a href="{{ url_for('add_group') }}" class="btn btn-primary btn-lg mt-3">
-        <i class="bi bi-plus-circle me-2"></i>Ajouter le Premier Groupe
-    </a>
-</div>
-{% endif %}
 {% endblock %}

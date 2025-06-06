@@ -15,7 +15,7 @@
 </head>
 
 <body hx-boost="true">
-    <nav class="navbar navbar-expand-lg fixed-top" id="mainNav">
+    <nav class="navbar navbar-expand-lg fixed-top shadow-sm" id="mainNav">
         <div class="container">
             <a class="navbar-brand fw-bold" href="{{ url_for('home') }}">
                 <i class="bi bi-book me-2"></i>School Manager
@@ -50,9 +50,8 @@
             </div>
         </div>
     </nav>
-
-    <div class="container mt-4">
-        <main class="pb-4">
+    <div class="container py-5">
+        <main>
             {% block content %}{% endblock %}
         </main>
     </div>
@@ -99,26 +98,8 @@
     }
 
     .navbar {
-        box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
-    }
-
-    .table {
-        margin-top: 1rem;
-        border-radius: 8px;
-        overflow: hidden;
-    }
-
-    .form-group {
-        margin-bottom: 1rem;
-    }
-
-    .card {
-        transition: transform 0.2s;
-        margin-bottom: 1rem;
-    }
-
-    .card:hover {
-        transform: translateY(-2px);
+        background: var(--bs-body-bg) !important;
+        border-bottom: 1px solid var(--bs-border-color);
     }
 
     .btn-action {
@@ -128,6 +109,7 @@
     .theme-icon {
         font-size: 1.2rem;
         cursor: pointer;
+        color: var(--bs-body-color);
     }
 </style>
 

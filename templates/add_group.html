@@ -4,42 +4,108 @@
 <div class="row align-items-center mb-4">
     <div class="col">
         <h1 class="display-5 mb-0">
-            <i class="bi bi-mortarboard me-2"></i>Ajouter un Groupe
+            <i class="bi bi-people me-2"></i>Ajouter un Groupe
         </h1>
     </div>
 </div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="alert alert-{{ category }}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
 <div class="row">
-    <div class="col-md-8 col-lg-6">
+    <div class="col-12">
         <div class="card shadow-sm">
             <div class="card-body">
                 <form method="POST">
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Nom du Groupe</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
-                    </div>
-                    <div class="mb-3"> <label class="form-label">Sélectionner les Professeurs</label>
-                        <div class="card">
-                            <div class="card-body p-2">
-                                {% if teachers %}
-                                <div class="d-flex flex-wrap gap-2" id="teacherSelection">
-                                    {% for teacher in teachers %}
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" value="{{ teacher.id }}"
-                                            id="teacher{{ teacher.id }}" name="teacher_ids">
-                                        <label class="form-check-label" for="teacher{{ teacher.id }}">
-                                            {{ teacher.name }} ({{ teacher.subject }})
-                                        </label>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                                {% else %}
-                                <p class="text-muted mb-0 text-center"> <i
-                                        class="bi bi-exclamation-circle me-2"></i>Aucun professeur disponible
-                                </p>
-                                {% endif %}
-                            </div>
+                    <!-- Basic Information -->
+                    <div class="row mb-4">
+                        <h4 class="card-subtitle mb-3">Information Générale</h4>
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Nom du Groupe</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="code" class="form-label">Code</label>
+                            <input type="text" class="form-control" id="code" name="code"
+                                placeholder="Ex: GRP-2024-001">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="academic_year" class="form-label">Année Académique</label>
+                            <input type="text" class="form-control" id="academic_year" name="academic_year"
+                                pattern="\d{4}-\d{4}" placeholder="YYYY-YYYY" required
+                                title="Format requis: YYYY-YYYY (ex: 2024-2025)">
                         </div>
                     </div>
+
+                    <!-- Capacity Management -->
+                    <div class="row mb-4">
+                        <h4 class="card-subtitle mb-3">Gestion de la Capacité</h4>
+                        <div class="col-md-4 mb-3">
+                            <label for="capacity" class="form-label">Capacité</label>
+                            <input type="number" class="form-control" id="capacity" name="capacity" min="1">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="min_students" class="form-label">Minimum Requis</label>
+                            <input type="number" class="form-control" id="min_students" name="min_students" min="1">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="max_students" class="form-label">Maximum Permis</label>
+                            <input type="number" class="form-control" id="max_students" name="max_students" min="1">
+                        </div>
+                    </div>
+
+                    <!-- Teachers Assignment -->
+                    <div class="row mb-4">
+                        <h4 class="card-subtitle mb-3">Professeurs</h4>
+                        <div class="col-12">
+                            {% if teachers %}
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+                                        {% for teacher in teachers %}
+                                        <div class="col">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                    id="teacher{{ teacher.id }}" name="teacher_ids"
+                                                    value="{{ teacher.id }}">
+                                                <label class="form-check-label" for="teacher{{ teacher.id }}">
+                                                    <strong>{{ teacher.full_name }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">{{ teacher.subject }}</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle me-2"></i>Aucun professeur disponible.
+                                <a href="{{ url_for('add_teacher') }}" class="alert-link">Ajouter un professeur</a>.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Additional Information -->
+                    <div class="row mb-4">
+                        <h4 class="card-subtitle mb-3">Information Additionnelle</h4>
+                        <div class="col-12 mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="2"></textarea>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label for="notes" class="form-label">Notes</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="2"></textarea>
+                        </div>
+                    </div>
+
                     <div class="d-flex justify-content-between">
                         <a href="{{ url_for('groups') }}" class="btn btn-secondary">
                             <i class="bi bi-arrow-left me-2"></i>Retour
@@ -53,22 +119,38 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const form = document.querySelector('form');
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
-            const selectedTeachers = [];
-            document.querySelectorAll('input[name="teacher_ids"]:checked').forEach(checkbox => {
-                selectedTeachers.push(checkbox.value);
-            });
-            const hiddenInput = document.createElement('input');
-            hiddenInput.type = 'hidden';
-            hiddenInput.name = 'teacher_ids';
-            hiddenInput.value = selectedTeachers.join(',');
-            form.appendChild(hiddenInput);
-            form.submit();
+        // Set current academic year as default
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const academicYearInput = document.getElementById('academic_year');
+        if (!academicYearInput.value) {
+            academicYearInput.value = `${currentYear}-${currentYear + 1}`;
+        }
+
+        // Validate capacity constraints
+        const capacityInputs = {
+            capacity: document.getElementById('capacity'),
+            min: document.getElementById('min_students'),
+            max: document.getElementById('max_students')
+        };
+
+        function validateCapacity() {
+            const cap = parseInt(capacityInputs.capacity.value) || 0;
+            const min = parseInt(capacityInputs.min.value) || 0;
+            const max = parseInt(capacityInputs.max.value) || 0;
+
+            if (min > cap) capacityInputs.min.value = cap;
+            if (max > 0 && max < cap) capacityInputs.capacity.value = max;
+            if (min > max && max > 0) capacityInputs.min.value = max;
+        }
+
+        Object.values(capacityInputs).forEach(input => {
+            input.addEventListener('change', validateCapacity);
         });
     });
 </script>
