@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash
 from app.config.database import db
-from app.models.models import Teacher, Log
+from app.models import Teacher, Log
 from app.auth.auth import login_required
 
 def register_teacher_routes(app):

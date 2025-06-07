@@ -2,7 +2,7 @@ from flask import render_template
 from .student_routes import register_student_routes
 from .teacher_routes import register_teacher_routes
 from .group_routes import register_group_routes
-from app.models.models import Log, Student, Teacher, Group
+from app.models import Log, Student, Teacher, Group
 from app.auth.auth import login_required
 
 def register_routes(app):
@@ -17,7 +17,7 @@ def register_routes(app):
         }
         return render_template("home.html", logs=logs, stats=stats)
 
-    # Register all route modules
+    # register routes
     register_student_routes(app)
     register_teacher_routes(app)
     register_group_routes(app)
